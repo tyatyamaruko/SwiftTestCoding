@@ -44,7 +44,7 @@ class APIModelTestTests: XCTestCase {
         
         let manager = GitHubRepositoryManager(client: mockClient)
         
-        manager.load(user: "apple") {
+        manager.load(user: "apple   ") {
             XCTAssertEqual(mockClient.argsUser, "apple")
             
             XCTAssertEqual(manager.majorRepositories.count, 2)
@@ -54,4 +54,53 @@ class APIModelTestTests: XCTestCase {
         }
     }
     
+    func testEcho() {
+        let exp: XCTestExpectation = expectation(description: "wait for finish")
+        echo(message: "Hello") { message in
+            XCTAssertEqual(message, "Hello!")
+//            XCTFail()
+            exp.fulfill()
+        }
+        
+        wait(for: [exp], timeout: 5)
+    }
+    
+    func testIsHoliday() {
+        let formatter = DateFormatter()
+        formatter.dateFormat = "yyyy/MM/dd"
+        
+        var date: Date!
+        
+        date = formatter.date(from: "2019/01/06")
+        XCTAssertTrue(isHoliday(date: date))
+        
+        date = formatter.date(from: "2019/01/07")
+        XCTAssertFalse(isHoliday(date: date))
+        
+        date = formatter.date(from: "2019/01/11")
+        XCTAssertFalse(isHoliday(date: date))
+        
+        date = formatter.date(from: "2019/01/12")
+        XCTAssertTrue(isHoliday(date: date))
+    }
+    
+}
+
+func echo (message: String, handler: @escaping (String) -> Void) {
+    DispatchQueue.global().async {
+        Thread.sleep(forTimeInterval: 3)
+        
+        DispatchQueue.main.async {
+            handler("\(message)!")
+        }
+    }
+}
+
+func isHoliday(date: Date = Date()) -> Bool {
+//    let now = Date()
+    
+    let calendar = Calendar.current
+    let weekday = calendar.component(.weekday, from: date)
+    
+    return weekday == 1 || weekday == 7
 }
